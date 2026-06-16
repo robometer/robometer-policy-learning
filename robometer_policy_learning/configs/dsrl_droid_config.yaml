@@ -39,7 +39,7 @@ buffer:
 # Logging configuration
 logging:
   wandb_project: rfm_rl
-  wandb_entity: clvr
+  wandb_entity: null  # **REQUIRED**: Set to your W&B entity/username
   wandb_offline: false
   wandb_prefix: offline_only
   wandb_name: train_dsrl_droid
@@ -68,15 +68,15 @@ model:
 # Remote Robot Configuration (used when env_name="REMOTE_ROBOT")
 # Works with ngrok/Pinggy tunnels for training on different machines
 remote_robot:
-  host:  jessezhang2.a.pinggy.link # Robot server hostname (e.g., "0.tcp.ngrok.io", "xyz.a.pinggy.io")
-  port: 25363 # Robot server port
+  host: null  # **REQUIRED**: Robot server hostname (e.g., Pinggy/ngrok tunnel address)
+  port: 6000  # Robot server port (default: 6000, or 443 for Pinggy)
   connect_timeout: 300.0  # Connection timeout in seconds (5 min default for remote)
 
 # DSRL related parameters
 dsrl:
   # Pi0 Configuration
   pi0_checkpoint: "gs://openpi-assets/checkpoints/pi0_droid" # Path to Pi0 checkpoint (REQUIRED)
-  #pi0_checkpoint: "gs://openpi-assets/checkpoints/pi05_droid" # Path to Pi0 checkpoint (REQUIRED)
+  #pi0_checkpoint: "gs://openpi-assets/checkpoints/pi05_droid" # Path to Pi05 checkpoint (REQUIRED)
   action_exec_len: 8 # How many actions to execute from chunk
   noise_dim: 32  # Dimension of noise to predict
   noise_action_bound: 2.0 # Action bound for noise

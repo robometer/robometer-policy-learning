@@ -1,5 +1,0 @@
-# Example config for using SuccessFailureReplayBuffer
-# Extends the base dsrl_config with success/failure buffer settings
-
-defaults:
-  - dsrl_config

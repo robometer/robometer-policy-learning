@@ -5,7 +5,7 @@ import warnings
 
 import reward_relabel_pb2 as reward__relabel__pb2
 
-GRPC_GENERATED_VERSION = '1.76.0'
+GRPC_GENERATED_VERSION = '1.81.1'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -16,18 +16,16 @@ except ImportError:
     _version_not_supported = True
 
 if _version_not_supported:
-    warnings.warn(
+    raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in reward_relabel_pb2_grpc.py was generated against'
+        + ' but the generated code in reward_relabel_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
-        + f' Consider upgrading your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
-        + f' or regenerating this code using a grpcio-tools version compatible with'
-        + f' grpcio=={GRPC_VERSION}.',
-        UserWarning,
+        + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
+        + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
     )
 
 
-class RewardRelabelServiceStub(object):
+class RewardRelabelServiceStub:
     """Service for reward relabeling
     """
 
@@ -49,7 +47,7 @@ class RewardRelabelServiceStub(object):
                 _registered_method=True)
 
 
-class RewardRelabelServiceServicer(object):
+class RewardRelabelServiceServicer:
     """Service for reward relabeling
     """
 
@@ -88,7 +86,7 @@ def add_RewardRelabelServiceServicer_to_server(servicer, server):
 
 
  # This class is part of an EXPERIMENTAL API.
-class RewardRelabelService(object):
+class RewardRelabelService:
     """Service for reward relabeling
     """
 

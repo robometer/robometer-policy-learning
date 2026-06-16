@@ -1,48 +1,63 @@
 # Pi0 Evaluation Configuration
-# Usage: python scripts/eval_pi0.py [overrides]
-# Examples:
-#   python scripts/eval_pi0.py                                    # Use defaults (random noise)
-#   python scripts/eval_pi0.py policy_checkpoint=./checkpoint.pt  # Use trained policy
-#   python scripts/eval_pi0.py eval.num_episodes=20               # Run more episodes
-#   python scripts/eval_pi0.py use_random_noise=false policy_checkpoint=./ckpt.pt
+#
+# Evaluates Pi0 policy with optional random noise or learned DSRL policy steering.
+# Supports both SIMPLER environments and remote robot environments.
+#
+# Usage:
+#   # Random noise evaluation on remote robot:
+#   XLA_PYTHON_CLIENT_PREALLOCATE=false uv run python scripts/eval_pi0.py \
+#       server.host=YOUR_HOST server.port=YOUR_PORT \
+#       logging.wandb_entity=YOUR_ENTITY
+#
+#   # Evaluate with a trained DSRL policy:
+#   XLA_PYTHON_CLIENT_PREALLOCATE=false uv run python scripts/eval_pi0.py \
+#       use_random_noise=false \
+#       policy_checkpoint=./replay_buffers/policy.pt \
+#       server.host=YOUR_HOST server.port=YOUR_PORT \
+#       logging.wandb_entity=YOUR_ENTITY
+#
+#   # SIMPLER simulation eval (local, no robot needed):
+#   uv run python scripts/eval_pi0.py \
+#       env.env_type=simpler \
+#       server.host=localhost server.port=6000
 
 # Environment configuration (defaults to DROID remote robot)
 env:
   env_type: "remote_robot"  # "simpler" or "remote_robot"
   obs_format: "droid"  # "droid" or "widowx"
-  image_keys: ["observation/wrist_image_left", "observation/exterior_image_1_left"] # keys for dino conversion in DSRL observation
+  image_keys: ["observation/wrist_image_left", "observation/exterior_image_1_left"]
   extra_keys_to_drop: ["observation/joint_position", "observation/gripper_position"]
 
 # Remote robot/server connection
 server:
-  host: "jessezhang2.a.pinggy.link"
-  port: 25363
+  host: null  # **REQUIRED**: Robot server hostname (e.g., Pinggy tunnel address)
+  port: 6000  # Robot server port (default: 6000, or 443 for Pinggy)
 
 # Pi0 configuration
 pi0:
-  checkpoint: "gs://openpi-assets/checkpoints/pi0_droid"
-  action_exec_len: 8 # Number of actions to execute from each chunk
-  noise_dim: 32  # Dimension of noise vector
-  noise_action_bound: 1.0  # Action bound for noise (used in DummyDSRLEnv)
+  checkpoint: "checkpoints/pi0_droid"  # Path to Pi0 checkpoint. Download: hf download jesbu1/pi0_droid --local-dir checkpoints/pi0_droid
+  action_exec_len: 8
+  noise_dim: 32
+  noise_action_bound: 1.0
 
 # Noise configuration (for random noise evaluation)
 use_random_noise: true  # If true, use random Gaussian noise instead of trained policy
 noise_scale: 1.0  # Scale factor for random noise
 
 # Policy configuration (used when use_random_noise=false)
-policy_checkpoint: null  # Path to trained policy checkpoint
+policy_checkpoint: null  # Path to trained policy checkpoint (e.g., ./replay_buffers/policy.pt)
 
 # Evaluation settings
 eval:
-  num_episodes: 20 # Number of evaluation episodes
-  record_video: true  # Record evaluation videos
-  gamma: 0.99  # Discount factor
+  num_episodes: 20
+  record_video: true
+  gamma: 0.99
 
 # Logging configuration
 logging:
   wandb_enable: true
   wandb_project: rfm_rl
-  wandb_entity: clvr
+  wandb_entity: null  # **REQUIRED**: Set to your W&B entity/username
   wandb_offline: false
   wandb_name: eval_pi0
   wandb_log_dir_base: logs/wandb
@@ -52,8 +67,8 @@ logging:
 
 # Model configuration (optional feature extractors)
 model:
-  dinov2_model: "facebook/dinov2-small"  # DINOv2 model for image embedding (null to disable)
-  sentence_model: null  # Sentence transformer for language (null to disable)
+  dinov2_model: "facebook/dinov2-small"
+  sentence_model: null
 
 # Device and seed
 device: "cuda"

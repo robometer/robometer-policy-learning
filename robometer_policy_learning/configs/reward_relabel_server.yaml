@@ -1,4 +1,5 @@
 defaults:
+  - _self_
   - reward_model: robometer
 
 # Server configuration

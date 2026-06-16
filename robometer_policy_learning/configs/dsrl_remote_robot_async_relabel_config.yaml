@@ -1,10 +1,20 @@
+# DSRL on a remote DROID-format robot with async reward relabeling
+# Uses Robometer/RoboReward gRPC server for automatic progress/success scoring.
+#
+# To run:
+#   1. Start the reward relabel server (see docs/REAL_ROBOT_README.md)
+#   2. Start the robot server on the robot machine (droid_remote_server.py)
+#   3. Run training:
+#        XLA_PYTHON_CLIENT_PREALLOCATE=false uv run python scripts/train_dsrl.py \
+#            --config-name dsrl_remote_robot_async_relabel_config \
+#            logging.wandb_entity=YOUR_ENTITY \
+#            remote_robot.host=YOUR_ROBOT_HOST \
+#            remote_robot.port=YOUR_ROBOT_PORT
+
 defaults:
   - dsrl_droid_config
-  - override algorithm@online_algorithm: franka_dsrl_sac
-  - override policy@policy: transformer
-  - override value_function@value_function: transformer
   - _self_
-  
+
 # Environment configuration
 env:
   # Async reward relabeling configuration
@@ -13,12 +23,12 @@ env:
 
 # Replay buffer configuration
 buffer:
-  min_relabeled_ratio: 0.1  # Minimum ratio of relabeled transitions required before sampling
-  save_buffer_on_exit: true  # Save buffer to npz file when training exits or killed (Ctrl+C)
-  save_buffer_every: 500  # Save buffer every N env steps (0 to disable)
-  save_buffer_dir: "replay_buffers"  # Directory to save buffer files
-  save_buffer_images: true   # WARNING: creates large files! Only enable if you need videos
-  save_buffer_image_keys: ["observation/wrist_image_left", "observation/exterior_image_1_left"]  # Which image keys to save
+  min_relabeled_ratio: 0.1
+  save_buffer_on_exit: true
+  save_buffer_every: 500
+  save_buffer_dir: "replay_buffers"
+  save_buffer_images: true  # WARNING: creates large files
+  save_buffer_image_keys: ["observation/wrist_image_left", "observation/exterior_image_1_left"]
 
 reward_model:
   async_reward_relabel_server_address: "localhost:50052"
@@ -30,15 +40,17 @@ logging:
   wandb_name: train_dsrl_droid_async_relabel
 
 model:
-  # dinov2_model: null #"facebook/dinov2-small"
   dinov2_model: "facebook/dinov2-small"
   sentence_model: null
-  # image_encoder_type: "impala"
 
-# turn off eval for async buffer
+# DSRL parameters
+dsrl:
+  noise_action_bound: 1.5
+
+# Evaluation configuration (effectively off for async relabel training to not interrupt training.)
 eval:
-  eval_freq: 1000000000000000 # Evaluation frequency in rollouts 
-  eval_num_episodes: 4  # Number of episodes for evaluation
-  eval_record_video: true  # Whether to record videos during evaluation
-  eval_at_episode_boundary: true  # If true, only evaluate at episode boundaries (auto-enabled for REMOTE_ROBOT)
-  eval_on_first_step: false # If true, evaluate on the first step before any training
+  eval_freq: 1000000000000000
+  eval_num_episodes: 0
+  eval_record_video: true
+  eval_at_episode_boundary: true
+  eval_on_first_step: false

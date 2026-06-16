@@ -13,7 +13,7 @@ A flexible reinforcement \ imitation learning framework supporting multiple algo
   - [Basic Training](#basic-training-ground-truth-rewards)
   - [Training with Reward Model](#training-with-robometer-reward-model)
   - [Example: Online RL in LIBERO](#example-online-rl-in-libero)
-- [Real-World Online RL with DSRL + Remote Reward Labeling - Coming Soon]
+- [Real-World Online RL with DSRL + Remote Reward Labeling](#real-world-online-rl-with-dsrl--remote-reward-labeling)
 - [Project Structure](#project-structure)
 ---
 
@@ -178,10 +178,44 @@ You should see evaluation curves similar to the example below:
 
 # Real-World Online RL with DSRL + Remote Reward Labeling
 
-Coming soon...
-Files are in this repo but need to be cleaned up, should be done by mid June. 
+Train DSRL policies on a real Franka/DROID or WidowX robot with async reward relabeling via Robometer over gRPC.
 
-Also coming soon: DSRL+Pi0 sanity check command before running real world online RL. 
+**Full guide:** [docs/REAL_ROBOT_README.md](docs/REAL_ROBOT_README.md) — covers robot server setup, Pinggy tunneling, reward relabel server, training, and evaluation.
+
+### Quick commands (DROID / Franka)
+
+**Terminal 1 — Training machine (reward model server):**
+```bash
+uv run python scripts/start_reward_relabel_server.py \
+    reward_model=robometer \
+    reward_model.model_path="robometer/Robometer-4B" \
+    server.port=50052 server.host="0.0.0.0" device=cuda \
+    server.image_keys='["observation/exterior_image_1_left"]'
+```
+
+**Terminal 2 — Training machine (DSRL training):**
+```bash
+XLA_PYTHON_CLIENT_PREALLOCATE=false uv run python scripts/train_dsrl.py \
+    --config-name dsrl_remote_robot_async_relabel_config \
+    logging.wandb_entity=YOUR_ENTITY \
+    remote_robot.host=YOUR_ROBOT_HOST \
+    remote_robot.port=YOUR_ROBOT_PORT
+```
+
+**Terminal 3 — Robot machine (robot server):**
+```bash
+uv run python robometer_policy_learning/robots/droid_remote_server.py \
+    --left-camera-id "..." --wrist-camera-id "..." \
+    --external-camera left --server-port 6000 \
+    --prompt "put the red block in the bowl"
+```
+
+**Terminal 4 — Robot machine (Pinggy tunnel):**
+```bash
+ssh -p 443 -R0:localhost:6000 qr+tcp@free.pinggy.io
+```
+
+See the [real robot guide](docs/REAL_ROBOT_README.md) for WidowX instructions, eval with `eval_pi0.py`, and troubleshooting. 
 
 ---
 

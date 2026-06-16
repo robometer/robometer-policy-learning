@@ -5,7 +5,7 @@ import warnings
 
 import learner_pb2 as learner__pb2
 
-GRPC_GENERATED_VERSION = '1.76.0'
+GRPC_GENERATED_VERSION = '1.81.1'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -25,7 +25,7 @@ if _version_not_supported:
     )
 
 
-class IngestionServiceStub(object):
+class IngestionServiceStub:
     """Ingestion service: robots stream batches of transitions
     """
 
@@ -42,7 +42,7 @@ class IngestionServiceStub(object):
                 _registered_method=True)
 
 
-class IngestionServiceServicer(object):
+class IngestionServiceServicer:
     """Ingestion service: robots stream batches of transitions
     """
 
@@ -68,7 +68,7 @@ def add_IngestionServiceServicer_to_server(servicer, server):
 
 
  # This class is part of an EXPERIMENTAL API.
-class IngestionService(object):
+class IngestionService:
     """Ingestion service: robots stream batches of transitions
     """
 
@@ -100,7 +100,7 @@ class IngestionService(object):
             _registered_method=True)
 
 
-class PolicyServiceStub(object):
+class PolicyServiceStub:
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -126,7 +126,7 @@ class PolicyServiceStub(object):
                 _registered_method=True)
 
 
-class PolicyServiceServicer(object):
+class PolicyServiceServicer:
     """Missing associated documentation comment in .proto file."""
 
     def GetActor(self, request, context):
@@ -174,7 +174,7 @@ def add_PolicyServiceServicer_to_server(servicer, server):
 
 
  # This class is part of an EXPERIMENTAL API.
-class PolicyService(object):
+class PolicyService:
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
