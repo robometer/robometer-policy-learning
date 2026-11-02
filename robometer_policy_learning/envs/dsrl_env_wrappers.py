@@ -144,6 +144,43 @@ class SimplerDenseRewardWrapper(gym.Wrapper):
         return reward
 
 
+def _hide_collision_geoms(env):
+    """Hide LIBERO's collision geoms in the offscreen render.
+
+    robosuite already tries to do this -- MujocoEnv._reset_internal sets
+    vopt.geomgroup[0]=0 when render_collision_mesh is False -- but under
+    mujoco 2.3.7 writing to MjvOption.geomgroup sets every entry to the same
+    value, so the next line (geomgroup[1]=1 for render_visual_mesh) turns all
+    groups back on, collision included:
+
+        >>> o = mujoco.MjvOption()
+        >>> o.geomgroup[0] = 0   # -> [0, 0, 0, 0, 0, 0]
+        >>> o.geomgroup[1] = 1   # -> [1, 1, 1, 1, 1, 1]
+
+    The result is that agentview frames show collision geometry drawn over the
+    visual meshes (e.g. KITCHEN_SCENE6's microwave renders in its
+    micro_collision_blue material, and the Panda base in the group-0 rgbas from
+    robot.xml). Since these frames are what the reward model scores, it seemed
+    worth fixing.
+
+    Setting geomgroup from Python doesn't work on this version, so hide the
+    collision geoms in the model instead by zeroing their alpha. Re-applied on
+    every reset because hard_reset=True rebuilds the model. This is a no-op on
+    setups where the flag already works.
+    """
+    reset = env.reset
+
+    def reset_and_hide(*args, **kwargs):
+        out = reset(*args, **kwargs)
+        model = env.sim.model
+        collision = np.asarray(model.geom_group) == 0
+        model.geom_rgba[collision, 3] = 0.0
+        return out
+
+    env.reset = reset_and_hide
+    return env
+
+
 def setup_libero_env(
     task_suite_name: str,
     task_id: int,
@@ -217,6 +254,7 @@ def setup_libero_env(
             env_args = {"bddl_file_name": task_bddl_file, "camera_heights": 256, "camera_widths": 256}
             base_env = OffScreenRenderEnv(**env_args)
             base_env.seed(seed + i)
+            _hide_collision_geoms(base_env)
             base_env = GymToGymnasiumWrapper(base_env, time_limit=max_episode_steps)
             wrapped_env = LiberoPI0Wrapper(
                 base_env,
